@@ -3,7 +3,8 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <jsk_recognition_msgs/BoundingBox.h>
 #include <jsk_recognition_msgs/BoundingBoxArray.h>
-#include <jsk_recognition_msgs/MarkerArrayStamped.h>
+//#include <jsk_recognition_msgs/MarkerArrayStamped.h>
+#include <pr2_open_b2_door_demo/MarkerArrayStamped.h>
 #include <geometry_msgs/PointStamped.h>
 #include <time.h>
 #include <vector>
@@ -21,14 +22,14 @@ boost::mutex mutex_;
 
 void calculate(
                const jsk_recognition_msgs::BoundingBox::ConstPtr& box,
-               const jsk_recognition_msgs::MarkerArrayStamped::ConstPtr& marker_array)
+               const pr2_open_b2_door_demo::MarkerArrayStamped::ConstPtr& marker_array)
 {
   //init input topic
 
   //std::count<<"calculate"<<std::endl;
   jsk_recognition_msgs::BoundingBox new_bbox_msg(*box);
   //visualization_msgs::MarkerArray ma;
-  jsk_recognition_msgs::MarkerArrayStamped new_marker_msg(*marker_array);
+  pr2_open_b2_door_demo::MarkerArrayStamped new_marker_msg(*marker_array);
   visualization_msgs::Marker nearest_marker;
   float dist;
   std::vector<float> dist_vec;
@@ -66,11 +67,11 @@ main(int argc, char** argv)
   //Initialize ROS
   ros::init (argc, argv, "check_node");
   ros::NodeHandle nh;
-  typedef message_filters::sync_policies::ApproximateTime<jsk_recognition_msgs::BoundingBox, jsk_recognition_msgs::MarkerArrayStamped> MySyncPolicy;
+  typedef message_filters::sync_policies::ApproximateTime<jsk_recognition_msgs::BoundingBox, pr2_open_b2_door_demo::MarkerArrayStamped> MySyncPolicy;
 
   //message filter
   message_filters::Subscriber<jsk_recognition_msgs::BoundingBox> box_sub(nh, "input_box",1);
-  message_filters::Subscriber<jsk_recognition_msgs::MarkerArrayStamped> marker_sub(nh, "input_marker",1);
+  message_filters::Subscriber<pr2_open_b2_door_demo::MarkerArrayStamped> marker_sub(nh, "input_marker",1);
 
 
   message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(10), box_sub, marker_sub);
