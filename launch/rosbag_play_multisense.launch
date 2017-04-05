@@ -43,7 +43,7 @@
   <node name="rviz"
         pkg="rviz"
         type="rviz"
-        args="$(find pr2_open_b2_door_demo)/rvizconfig/default.rviz" />
+        args="-d $(find pr2_open_b2_door_demo)/rvizconfig/default.rviz" />
 
   <!--
   <include file="$(find jsk_data)/launch/multisense_play.launch">
