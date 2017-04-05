@@ -1,0 +1,54 @@
+<launch>
+  <arg name="filename" default="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo/otsubo_cable.bag" />
+  <arg name="options" default="--clock --loop" />
+
+  <node name="rosbag_play"
+        pkg="rosbag"
+        type="play"
+        args="$(arg filename) $(arg options)" />
+
+  <arg name="MANAGER" value="nodelet_manager" />
+  <node name="$(arg MANAGER)"
+        pkg="nodelet"
+        type="nodelet"
+        args="manager" />
+
+  <group ns="/multisense/left">
+    <node name="republish_color"
+          pkg="image_transport" type="republish"
+          args="compressed raw">
+      <remap from="in" to="image_rect_color" />
+      <remap from="out" to="image_rect_color" />
+    </node>
+  </group>
+
+  <group ns="/multisense">
+    <node name="point_cloud_xyzrgb"
+          pkg="nodelet"
+          type="nodelet"
+          args="load depth_image_proc/point_cloud_xyzrgb /$(arg MANAGER)">
+      <remap from="rgb/camera_info" to="left/camera_info" />
+      <remap from="rgb/image_rect_color" to="left/image_rect_color" />
+      <remap from="depth_registered/image_rect" to="depth" />
+      <remap from="depth_registered/points" to="points" />
+      <rosparam>
+        queue_size: 100
+      </rosparam>
+    </node>
+  </group>
+
+  <param name="robot_description"
+         textfile="$(find hrpsys_ros_bridge_tutorials)/models/$(optenv ROBOT)_WH_SENSORS.urdf" />
+
+  <node name="rviz"
+        pkg="rviz"
+        type="rviz"
+        args="$(find pr2_open_b2_door_demo)/rvizconfig/default.rviz" />
+
+  <!--
+  <include file="$(find jsk_data)/launch/multisense_play.launch">
+    <arg name="INPUT" value="$(arg filename) $(arg options)" />
+    <arg name="use_resize" value="true" />
+  </include>
+  -->
+</launch>
