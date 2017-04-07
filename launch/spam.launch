@@ -1,0 +1,22 @@
+<launch>
+
+  <include file="$(find pr2_open_b2_door_demo)/launch/rosbag_play_multisense.launch">
+  </include>
+
+  <include file="$(find jsk_pcl_ros)/launch/hsi_color_filter.launch">
+    <arg name="INPUT" value="/multisense/points" />
+    <arg name="h_max" default="20" />
+    <arg name="h_min" default="-20" />
+    <arg name="s_max" default="255" />
+    <arg name="s_min" default="50" />
+    <arg name="i_max" default="255" />
+    <arg name="i_min" default="0" />
+  </include>
+
+  <node name="line_detector"
+        pkg="pr2_open_b2_door_demo"
+        type="line_detector">
+    <remap from="input" to="/HSI_color_filter/hsi_output" /> 
+  </node>
+
+</launch>
