@@ -26,11 +26,11 @@ ros::Publisher pub_coefficients_;
 boost::mutex mutex_;
 float ransac_dist_thres_ = 0.03; //5cm
 // float ransac_dist_thres_ = 0.05; //5cm
-int ransac_min_inliers_ = 20;
+int ransac_min_inliers_ = 50;
 int ransac_min_trial_ = 5;
 // int ransac_min_trial_ = 5;
 // int ransac_model_min_points_ = 30; // 2* ransac_min_inliers__
-int ransac_model_min_points_ = 30; // 2* ransac_min_inliers__
+int ransac_model_min_points_ = 100; // 2* ransac_min_inliers__
 // float cluster_tolerance_ = 0.15; //30cm
 float cluster_tolerance_ = 0.1; //30cm
 int cluster_min_size_ = 30;

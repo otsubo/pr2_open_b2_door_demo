@@ -1,7 +1,9 @@
 <launch>
   <arg name="filename" default="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo/otsubo_cable.bag" />
-  <arg name="options" default="--clock --loop" />
-
+  <arg name="ROBOT" default="HRP2JSKNT" />
+  
+  <arg name="options" value="--clock --loop" />
+  <param name="/use_sim_time" value="true" />
   <node name="rosbag_play"
         pkg="rosbag"
         type="play"
@@ -38,7 +40,7 @@
   </group>
 
   <param name="robot_description"
-         textfile="$(find hrpsys_ros_bridge_tutorials)/models/$(optenv ROBOT)_WH_SENSORS.urdf" />
+         textfile="$(find hrpsys_ros_bridge_tutorials)/models/$(arg ROBOT)_WH_SENSORS.urdf" />
 
   <node name="rviz"
         pkg="rviz"
