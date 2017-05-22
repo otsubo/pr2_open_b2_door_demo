@@ -155,7 +155,7 @@ void applyRecursiveRANSAC(const pcl::PointCloud<pcl::PointXYZ>::Ptr& input, std:
   return res;
 }
 
-jsk_recognition_msgs::SegmentStamped::Ptr make_line_marker(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, const pcl::PointIndices::Ptr& inliers, const pcl::ModelCoefficients::Ptr& coefficients,int count, bool refined){
+jsk_recognition_msgs::Segment::Ptr make_line_marker(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, const pcl::PointIndices::Ptr& inliers, const pcl::ModelCoefficients::Ptr& coefficients,int count, bool refined){
 
   Eigen::Vector3d* polars= calculate_inliner_polars(cloud, inliers, coefficients);
   geometry_msgs::Point p0;
@@ -459,7 +459,7 @@ cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // std::cout<<"number of line:"<<all_inliers.size()<<std::endl;
   for(size_t i = 0; i < all_inliers.size(); i++)
     {
-      jsk_recognition_msgs::SegmentStamped::Ptr segment;
+      jsk_recognition_msgs::Segment::Ptr segment;
       segment = make_line_marker(cloud, all_inliers[i], all_coefficients[i], i, false);
       segment_array.segments.push_back(*segment);
     }
@@ -473,6 +473,7 @@ cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
       sensor_msgs::PointCloud2 output;
       pcl::toROSMsg(*colored_cloud, output);
+      segment_array.header = pcl_conversions::fromPCL(cloud->header);
 
   // Publish the data
       pub.publish (output);
