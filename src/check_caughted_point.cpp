@@ -68,7 +68,7 @@ void test_calculate(
   // //init input topic
   // std::cout<<"test1"<<std::endl;
 
-  // //std::count<<"calculate"<<std::endl;
+  std::cout<<"calculate"<<std::endl;
   // jsk_recognition_msgs::BoundingBox new_bbox_msg(*box);
   // //visualization_msgs::MarkerArray ma;
   // pr2_open_b2_door_demo::MarkerArrayStamped new_marker_msg(*marker_array);
@@ -119,26 +119,32 @@ main(int argc, char** argv)
   ros::NodeHandle nh;
   typedef message_filters::sync_policies::ApproximateTime<jsk_recognition_msgs::BoundingBox, pr2_open_b2_door_demo::MarkerArrayStamped> MySyncPolicy;
 
-  //message filter
-  message_filters::Subscriber<jsk_recognition_msgs::BoundingBox> box_sub(nh, "input_box",1);
-  message_filters::Subscriber<pr2_open_b2_door_demo::MarkerArrayStamped> marker_sub(nh, "input_marker",1);
-
-
-  message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(5000), box_sub, marker_sub);
-  sync_.registerCallback(boost::bind(&test_calculate, _1, _2));
-  std::cout<<"synchronized"<<std::endl;
-  //Create ROS publishers for output
-  //dist_pub = nh.advertise<geometry_msgs::PointStamped> ("distance", 1);
-  nearest_marker_pub = nh.advertise<visualization_msgs::Marker> ("output_marker", 1);
-  std::cout<<"pub"<<std::endl;
-  
-  //Spin
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(20);
   while(ros::ok()){
+
+    //message filter
+    message_filters::Subscriber<jsk_recognition_msgs::BoundingBox> box_sub(nh, "input_box",1);
+    message_filters::Subscriber<pr2_open_b2_door_demo::MarkerArrayStamped> marker_sub(nh, "input_marker",1);
+
+
+    message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(5000), box_sub, marker_sub);
+    sync_.registerCallback(boost::bind(&calculate, _1, _2));
+    std::cout<<"synchronized"<<std::endl;
+    //Create ROS publishers for output
+    //dist_pub = nh.advertise<geometry_msgs::PointStamped> ("distance", 1);
+    nearest_marker_pub = nh.advertise<visualization_msgs::Marker> ("output_marker", 1);
+    std::cout<<"pub"<<std::endl;
+    
+    //Spin
+  // ros::Rate loop_rate(20);
+  // while(ros::ok()){
     ros::spinOnce();
+    std::cout<<"spin"<<std::endl;
     loop_rate.sleep();
   }
-
+  // ros::spin();
+  // std::cout<<"spin"<<std::endl;
+  
 }
  
 
