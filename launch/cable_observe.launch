@@ -1,0 +1,155 @@
+<launch>
+<!--
+  <node name="$(arg manager)"
+        pkg="nodelet" type="nodelet"
+        args="manager"/>
+-->
+
+  <include file="$(find pr2_open_b2_door_demo)/launch/rosbag_play_multisense.launch">
+  </include>
+  <arg name="manager" value="nodelet_manager" />
+
+  <!-- Detect cable -->
+
+  <include file="$(find jsk_pcl_ros)/launch/hsi_color_filter.launch">
+    <arg name="INPUT" value="/multisense/points" />
+    <arg name="h_max" default="127" />
+    <arg name="h_min" default="0" />
+    <arg name="s_max" default="255" />
+    <arg name="s_min" default="50" />
+    <arg name="i_max" default="255" />
+    <arg name="i_min" default="0" />
+  </include>
+
+  <node name="line_detector"
+        pkg="pr2_open_b2_door_demo"
+        type="line_detector">
+    <remap from="input" to="/HSI_color_filter/hsi_output" />
+    <rosparam>
+      min_size: 10000
+    </rosparam>
+  </node>
+
+  <node name="passthrough_filter_ground"
+        pkg="nodelet" type="nodelet"
+        args="load pcl/PassThrough $(arg manager)">
+    <remap from="~input" to="/HSI_color_filter/hsi_output" />
+    <rosparam>
+      input_frame: zmp 
+      filter_limit_negative: true
+      filter_field_name: z
+      filter_limit_min: -0.1
+      filter_limit_max: 0.1
+    </rosparam>
+  </node>
+
+  <node name="octree_voxel_grid"
+	pkg="nodelet" type="nodelet"
+        args="load jsk_pcl/OctreeVoxelGrid $(arg manager)">
+    <remap from="~input" to="passthrough_filter_ground/output" />
+    <rosparam>
+      resolution: 0.01
+    </rosparam>
+  </node>
+
+  <node name="euclidean_clustering"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_pcl/EuclideanClustering $(arg manager)">
+    <remap from="~input" to="octree_voxel_grid/output" />
+    <rosparam>
+      tolerance: 0.1
+      max_size: 100000
+      min_size: 1000
+    </rosparam>
+  </node>
+
+  <node name="cluster_indices_decomposer"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg manager)">
+    <remap from="~input" to="octree_voxel_grid/output" />
+    <remap from="~target" to="euclidean_clustering/output" />
+    <rosparam>
+      approximate_sync: true
+      queue_size: 100
+      align_boxes: true
+      align_boxes_with_plane: false
+      target_frame_id: odom
+      publish_clouds: true
+    </rosparam>
+  </node>
+
+  <node name="bboxes_to_bbox"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_pcl_utils/BoundingBoxArrayToBoundingBox $(arg manager)">
+    <remap from="~input" to="cluster_indices_decomposer/boxes" />
+    <rosparam>
+      index: 0
+    </rosparam>
+  </node>
+
+  <node pkg="pr2_open_b2_door_demo" type="check_caughted_point" name="check_node">
+    <remap from="input_box" to="bbox_to_bbox/output" />
+    <remap from="input_segment" to="segment_output" />
+  </node>
+
+  <!-- <node name="point_cloud_to_cluster_point_indices" -->
+  <!--       pkg="nodelet" type="nodelet" -->
+  <!--       args="load jsk_pcl_utils/PointCloudToClusterPointIndices $(arg manager)"> -->
+  <!--   <remap from="~input" to="cluster_indices_decomposer/debug_output" /> -->
+  <!-- </node> -->
+
+  <!-- <node name="point_indices_to_mask_image" -->
+  <!--       pkg="nodelet" type="nodelet" -->
+  <!--       args="load jsk_pcl_utils/PointIndicesToMaskImage $(arg manager)"> -->
+  <!--   <remap from="~input" to="point_cloud_to_cluster_point_indices" /> -->
+  <!--   <remap from="~input/image" to="multisense/left/image_rect_color" /> -->
+  <!--   <rosparam> -->
+  <!--     approximate_sync: true -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+
+
+<!-- displaying bounding box into image -->
+
+  <!-- <node name="bbox_to_rect" -->
+  <!--       pkg="nodelet" type="nodelet" -->
+  <!--       args="load jsk_perception/BoundingBoxToRect $(arg manager)"> -->
+  <!--   <remap from="~input" to="/cluster_indices_decomposer/boxes"/> -->
+  <!--   <remap from="~input/info" to="/multisense/left/camera_info"/> -->
+  <!-- </node> -->
+  
+
+  <!-- <node name="rect_array_to_image_marker" -->
+  <!--       pkg="jsk_perception" -->
+  <!--       type="rect_array_to_image_marker.py"> -->
+  <!--   <remap from="~input" to="bbox_to_rect/output"/> -->
+  <!-- </node> -->
+
+
+
+  <!-- <node name="vis_image_with_rect" -->
+  <!--       pkg="image_view2" -->
+  <!--       type="image_view2"> -->
+  <!--   <remap from="image" to="/multisense/left/image_rect_color" /> -->
+  <!--   <remap from="camera_info" to="/multisense/left/image_rect_color"/> -->
+  <!--   <remap from="image_marker" to="rect_array_to_image_marker/output"/> -->
+  <!-- </node> -->
+
+<!--
+1. passthrough_filter_ground/output -> [euclidean_clustering](tolerance=0.2)
+2. (euclidean_clustering/output, passthrough_filter_ground/output) -> [cluster_indices_decomposer]
+3. cluster_indices_decomposer/box_array -> [bounding_boxes_to_bounding_box](index=0)
+4. (bounding_boxes_to_bonding_box/output, cable_marker_array) -> [euslisp_main]
+-->
+
+<!--
+  <include file="$(find jsk_pcl_ros)/launch/organized_multi_plane_segmentation.launch">
+    <arg name="INPUT" value="/zfilter/output" />
+    <rosparam>
+      min_size: 10000
+    </rosparam>
+  </include>
+-->
+
+</launch>
