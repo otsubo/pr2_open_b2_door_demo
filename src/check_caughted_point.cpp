@@ -119,35 +119,28 @@ main(int argc, char** argv)
   std::cout<<"initialized"<<std::endl;
   ros::init (argc, argv, "check_node");
   ros::NodeHandle nh;
-  typedef message_filters::sync_policies::ApproximateTime<jsk_recognition_msgs::BoundingBox, jsk_recognition_msgs::SegmentArray> MySyncPolicy;
+  typedef message_filters::sync_policies::ApproximateTime<
+		jsk_recognition_msgs::BoundingBox,
+		jsk_recognition_msgs::SegmentArray> MySyncPolicy;
 
-  ros::Rate loop_rate(20);
-  while(ros::ok()){
+  //message filter
+  message_filters::Subscriber<jsk_recognition_msgs::BoundingBox> box_sub(nh, "input_box", 10);
+  message_filters::Subscriber<jsk_recognition_msgs::SegmentArray> segment_sub(nh, "input_segment", 10);
+  message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(5000), box_sub, segment_sub);
+  sync_.registerCallback(boost::bind(&calculate, _1, _2));
 
-    //message filter
-    message_filters::Subscriber<jsk_recognition_msgs::BoundingBox> box_sub(nh, "input_box",1);
-    message_filters::Subscriber<jsk_recognition_msgs::SegmentArray> segment_sub(nh, "input_segment",1);
+  //Create ROS publishers for output
+  //dist_pub = nh.advertise<geometry_msgs::PointStamped> ("distance", 1);
 
+  nearest_segment_pub = nh.advertise<jsk_recognition_msgs::Segment> ("output_marker", 1);
 
-    message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(5000), box_sub, segment_sub);
-    sync_.registerCallback(boost::bind(&calculate, _1, _2));
-    std::cout<<"synchronized"<<std::endl;
-    //Create ROS publishers for output
-    //dist_pub = nh.advertise<geometry_msgs::PointStamped> ("distance", 1);
-    nearest_segment_pub = nh.advertise<jsk_recognition_msgs::Segment> ("output_marker", 1);
-    std::cout<<"pub"<<std::endl;
-    
-    //Spin
-  // ros::Rate loop_rate(20);
-  // while(ros::ok()){
+  // ros::spin();
+
+  ros::Rate loop_rate(20);  // 20Hz 1/20s
+  while (ros::ok())
+  {
     ros::spinOnce();
-    std::cout<<"spin"<<std::endl;
+    std::cout << "spinOnce is called" << std::endl;
     loop_rate.sleep();
   }
-  // ros::spin();
-  // std::cout<<"spin"<<std::endl;
-  
 }
- 
-
-
