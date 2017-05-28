@@ -33,6 +33,7 @@ void calculate(
   jsk_recognition_msgs::BoundingBox new_bbox_msg(*box);
   //visualization_msgs::MarkerArray ma;
   jsk_recognition_msgs::SegmentArray new_segment_msg(*segment_array);
+  jsk_recognition_msgs::SegmentArray nearest_segment_array;
   jsk_recognition_msgs::Segment nearest_segment;
   float dist;
   std::vector<float> dist_vec;
@@ -45,7 +46,7 @@ void calculate(
   float s_y;
   float s_z;
 
-  //calculate min distance and return nearest edge
+  //calculate min distance and return nearest segment
   for(size_t i = 0; i < new_segment_msg.segments.size() ; i++) {
     min_dist = -100;
     s_x = (new_segment_msg.segments[i].start_point.x + new_segment_msg.segments[i].end_point.x) / 2;
@@ -54,60 +55,17 @@ void calculate(
     dist = sqrt(pow(s_x - b_x, 2.0) + pow(s_y - b_y, 2.0) + pow(s_z - b_z, 2.0));
     if (dist < min_dist)
       min_dist = dist;
+    std::cout<<"segment calculate"<<std::endl;
     nearest_segment = new_segment_msg.segments[i];
     std::cout<<"segment"<<i<<" is calculated"<<std::endl;
   }
   // //Publish the data
   //dist_pub.publish (min_dist);
-  nearest_segment_pub.publish (nearest_segment);
+  nearest_segment_array.header = new_segment_msg.header;
+  nearest_segment_array.segments.push_back(nearest_segment);
+  nearest_segment_pub.publish (nearest_segment_array);
   std::cout<<"test2"<<std::endl;
 }
-
-// void test_calculate(
-//                const jsk_recognition_msgs::BoundingBox::ConstPtr& box,
-//                const pr2_open_b2_door_demo::MarkerArrayStamped::ConstPtr& marker_array)
-// {
-//   // //init input topic
-//   // std::cout<<"test1"<<std::endl;
-
-//   std::cout<<"calculate"<<std::endl;
-//   // jsk_recognition_msgs::BoundingBox new_bbox_msg(*box);
-//   // //visualization_msgs::MarkerArray ma;
-//   // pr2_open_b2_door_demo::MarkerArrayStamped new_marker_msg(*marker_array);
-//   // visualization_msgs::Marker nearest_marker;
-//   // float dist;
-//   // std::vector<float> dist_vec;
-//   // float min_dist;
-
-//   // float b_x = new_bbox_msg.pose.position.x;
-//   // float b_y = new_bbox_msg.pose.position.y;
-//   // float b_z = new_bbox_msg.pose.position.z;
-//   // float m_x;
-//   // float m_y;
-//   // float m_z;
-
-//   // //calculate min distance and return nearest edge
-//   // for(size_t i = 0; i < new_marker_msg.markers.size() ; i++) {
-//   //   min_dist = -100;
-//   //   m_x = new_marker_msg.markers[i].pose.position.x;
-//   //   m_y = new_marker_msg.markers[i].pose.position.y;
-//   //   m_z = new_marker_msg.markers[i].pose.position.z;
-//   //   dist = sqrt(pow(m_x - b_x, 2.0) + pow(m_y - b_y, 2.0) + pow(m_z - b_z, 2.0));
-//   //   if (dist < min_dist)
-//   //     min_dist = dist;
-//   //   nearest_marker = new_marker_msg.markers[i];
-//   //   std::cout<<"marker"<<i<<" is calculated"<<std::endl;
-//   // }
-//   // // //Publish the data
-//   // //dist_pub.publish (min_dist);
-//   // nearest_marker_pub.publish (nearest_marker);
-//   // std::cout<<"test2"<<std::endl;
-//   pr2_open_b2_door_demo::MarkerArrayStamped new_marker_msg(*marker_array);
-//   visualization_msgs::Marker nearest_marker;
-//   nearest_marker = new_marker_msg.markers[0];
-//   nearest_marker_pub.publish (nearest_marker);
-// }
-
 
 
 int
@@ -132,15 +90,7 @@ main(int argc, char** argv)
   //Create ROS publishers for output
   //dist_pub = nh.advertise<geometry_msgs::PointStamped> ("distance", 1);
 
-  nearest_segment_pub = nh.advertise<jsk_recognition_msgs::Segment> ("output_marker", 1);
+  nearest_segment_pub = nh.advertise<jsk_recognition_msgs::SegmentArray> ("output_marker", 1);
 
-  // ros::spin();
-
-  ros::Rate loop_rate(20);  // 20Hz 1/20s
-  while (ros::ok())
-  {
-    ros::spinOnce();
-    std::cout << "spinOnce is called" << std::endl;
-    loop_rate.sleep();
-  }
+  ros::spin();
 }
