@@ -1,0 +1,110 @@
+<!-- -*- mode: xml -*- -->
+<launch>
+
+  <include file="$(find pr2_open_b2_door_demo)/launch/rosbag_play_multisense.launch">
+  </include>
+  <arg name="manager" value="nodelet_manager" />
+
+
+  <!-- Detect cable -->
+
+  <include file="$(find jsk_pcl_ros)/launch/hsi_color_filter.launch">
+    <arg name="INPUT" value="/multisense/points" />
+    <arg name="h_max" default="30" />
+    <arg name="h_min" default="-30" />
+    <arg name="s_max" default="255" />
+    <arg name="s_min" default="50" />
+    <arg name="i_max" default="255" />
+    <arg name="i_min" default="50" />
+  </include>
+
+  <node name="passthrough_y"
+        pkg="nodelet" type="nodelet"
+        args="load pcl/PassThrough $(arg manager)">
+    <remap from="~input" to="/HSI_color_filter/hsi_output" />
+    <rosparam>
+      input_frame: odom
+      filter_field_name: y
+      filter_limit_min: -0.55
+      filter_limit_max: 0.4
+    </rosparam>
+  </node>
+
+  <node name="passthrough_x"
+        pkg="nodelet" type="nodelet"
+        args="load pcl/PassThrough $(arg manager)">
+    <remap from="~input" to="passthrough_y/output" />
+    <rosparam>
+      input_frame: odom
+      filter_field_name: x
+      filter_limit_min: 0.0
+      filter_limit_max: 1.0
+    </rosparam>
+  </node>
+  <!-- <node if="$(arg create_manager)" -->
+  <!--       pkg="nodelet" type="nodelet" name="$(arg manager)" -->
+  <!--       args="manager" output="screen"/> -->
+  <node pkg="nodelet" type="nodelet" name="zfilter"
+        args="load pcl/PassThrough $(arg manager)" output="screen">
+    <remap from="~input" to="passthrough_x/output" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.0
+      filter_limit_max: 1.7
+    </rosparam>
+  </node>
+
+  <!-- <node pkg="nodelet" type="nodelet" name="euclidean_clustering" -->
+  <!--       args="load jsk_pcl/EuclideanClustering $(arg manager)" output="screen"> -->
+  <!--   <remap from="~input" to="/zfilter/output" /> -->
+  <!--   <rosparam> -->
+  <!--     tolerance: 0.02 -->
+  <!--     min_size: 10 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+  <!-- <node pkg="nodelet" type="nodelet" -->
+  <!--       name="cluster_decomposer_z" -->
+  <!--       args="load jsk_pcl/ClusterPointIndicesDecomposerZAxis $(arg manager)" -->
+  <!--       output="screen" clear_params="true"> -->
+  <!--   <remap from="~input" to="/zfilter/output" /> -->
+  <!--   <remap from="~target" to="euclidean_clustering/output" /> -->
+  <!--   <rosparam> -->
+  <!--     approximate_sync: True -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+  <!-- <node pkg="nodelet" type="nodelet" name="grid_sampler" -->
+  <!--       args="load jsk_pcl/GridSampler $(arg manager)" output="screen"> -->
+  <!--   <remap from="~input" to="/zfilter/output" /> -->
+  <!--   <rosparam> -->
+  <!--     grid_size: 0.05 -->
+  <!--     min_indices: 5 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+  <!-- <node pkg="nodelet" type="nodelet" name="grid_cluster_decomposer" -->
+  <!--       args="load jsk_pcl/ClusterPointIndicesDecomposerZAxis $(arg manager)" -->
+  <!--       output="screen" clear_params="true"> -->
+  <!--   <remap from="~input" to="/zfilter/output" /> -->
+  <!--   <remap from="~target" to="/grid_sampler/output" /> -->
+  <!--   <remap from="~align_planes" to="/multi_plane_estimate/output_polygon" /> -->
+  <!--   <remap from="~align_planes" to="/multi_plane_estimate/output_coefficients" /> -->
+  <!--   <rosparam> -->
+  <!--     approximate_sync: True -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+
+  <node pkg="nodelet" type="nodelet" name="voxel_grid"
+        args="load pcl/VoxelGrid $(arg manager)" output="screen">
+    <remap from="~input" to="zfilter/output" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.01
+      filter_limit_max: 1.7
+      filter_limit_negative: False
+      leaf_size: 0.01
+    </rosparam>
+  </node>
+
+</launch>
