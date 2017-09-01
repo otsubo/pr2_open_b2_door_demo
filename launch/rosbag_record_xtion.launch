@@ -1,0 +1,26 @@
+<launch>
+  <arg name="topics"
+       value="/tf
+              /joint_states
+              /camera_remote/rgb/image_rect_color/compressed
+              /camera_remote/rgb/camera_info
+              /camera_remote/depth/camera_info
+              /camera_remote/depth_registered/image_raw" />
+  <arg name="save_dir" value="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo" />
+
+  <param name="mk_save_dir" command="mkdir -p $(arg save_dir)" />
+  <node name="rosbag_record"
+        pkg="rosbag"
+        type="record"
+        args="-O $(arg save_dir)/otsubo_xtion.bag $(arg topics)" />
+
+  <!--
+  <include file="$(find jsk_data)/launch/common_record.launch">
+    <arg name="save_openni" value="false" />
+    <arg name="save_multisense" value="true" />
+    <arg name="save_all_image" value="false" />
+    <arg name="save_dir" value="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo" />
+    <arg name="bagfile_prefix" value="cable_test" />
+  </include>
+  -->
+</launch>
