@@ -2,9 +2,11 @@
   <arg name="topics"
        value="/tf
               /joint_states
+              /rhsensor
+              /lhsensor
               /camera_remote/rgb/image_rect_color/compressed
               /camera_remote/rgb/camera_info
-              /camera_remote/depth/camera_info
+              /camera_remote/depth_registered/camera_info
               /camera_remote/depth_registered/image_raw" />
   <arg name="save_dir" value="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo" />
 

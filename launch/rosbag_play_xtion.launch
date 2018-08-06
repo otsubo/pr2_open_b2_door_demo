@@ -1,6 +1,6 @@
 <launch>
-  <arg name="filename" default="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo/otsubo_xtion.bag" />
-  <arg name="ROBOT" default="HRP2JSKNT" />
+  <arg name="filename" default="$(optenv HOME)/.ros/otsubo/pr2_open_b2_door_demo/otsubo_cable.bag" />
+  <arg name="ROBOT" default="HRP2JSKNTS" />
   
   <arg name="options" value="--clock --loop" />
   <param name="/use_sim_time" value="true" />
